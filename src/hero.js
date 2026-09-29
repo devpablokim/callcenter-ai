@@ -55,9 +55,12 @@ export function createHero(canvas) {
     uIntro: { value: 0 },
   };
 
-  // ───────── Voice orb: particles on a noisy sphere ─────────
-  const COUNT = window.innerWidth < 800 ? 9000 : 18000;
+  // ───────── Particle system with three morph targets ─────────
+  // position = sphere, aNebula = scattered cloud (intro), aWord = brand wordmark.
+  const COUNT = window.innerWidth < 800 ? 10000 : 20000;
   const pos = new Float32Array(COUNT * 3);
+  const nebula = new Float32Array(COUNT * 3);
+  const word = new Float32Array(COUNT * 3);
   const rnd = new Float32Array(COUNT * 4);
   for (let i = 0; i < COUNT; i++) {
     // fibonacci sphere with jitter
@@ -68,14 +71,52 @@ export function createHero(canvas) {
     pos[i * 3] = Math.cos(theta) * Math.sin(phi) * r;
     pos[i * 3 + 1] = Math.cos(phi) * r;
     pos[i * 3 + 2] = Math.sin(theta) * Math.sin(phi) * r;
-    rnd[i * 4] = Math.random();
-    rnd[i * 4 + 1] = Math.random();
-    rnd[i * 4 + 2] = Math.random();
-    rnd[i * 4 + 3] = Math.random();
+    // wide flattened nebula
+    const a = Math.random() * Math.PI * 2;
+    const d = Math.pow(Math.random(), 0.6) * 7;
+    nebula[i * 3] = Math.cos(a) * d;
+    nebula[i * 3 + 1] = (Math.random() - 0.5) * 3 + 1.5;
+    nebula[i * 3 + 2] = Math.sin(a) * d * 0.6 - 2;
+    for (let j = 0; j < 4; j++) rnd[i * 4 + j] = Math.random();
   }
+
+  // Sample the wordmark from a 2D canvas into particle targets.
+  function sampleWord(text) {
+    const c = document.createElement('canvas');
+    c.width = 1400;
+    c.height = 260;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = "500 210px 'Inter Tight', 'Helvetica Neue', Arial, sans-serif";
+    ctx.fillText(text, c.width / 2, c.height / 2);
+    const data = ctx.getImageData(0, 0, c.width, c.height).data;
+    const pts = [];
+    for (let y = 0; y < c.height; y += 2) {
+      for (let x = 0; x < c.width; x += 2) {
+        if (data[(y * c.width + x) * 4 + 3] > 128) pts.push(x, y);
+      }
+    }
+    const n = pts.length / 2;
+    const scale = 5.6 / c.width;
+    for (let i = 0; i < COUNT; i++) {
+      const j = Math.floor(Math.random() * n) * 2;
+      word[i * 3] = (pts[j] - c.width / 2) * scale + (Math.random() - 0.5) * 0.012;
+      word[i * 3 + 1] = -(pts[j + 1] - c.height / 2) * scale + (Math.random() - 0.5) * 0.012;
+      word[i * 3 + 2] = (Math.random() - 0.5) * 0.12;
+    }
+  }
+  sampleWord('HOBBYTAN');
+
   const orbGeo = new THREE.BufferGeometry();
   orbGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  orbGeo.setAttribute('aNebula', new THREE.BufferAttribute(nebula, 3));
+  const wordAttr = new THREE.BufferAttribute(word, 3);
+  orbGeo.setAttribute('aWord', wordAttr);
   orbGeo.setAttribute('aRnd', new THREE.BufferAttribute(rnd, 4));
+  // Re-sample once the web font is ready so the wordmark uses the real face.
+  document.fonts?.ready.then(() => { sampleWord('HOBBYTAN'); wordAttr.needsUpdate = true; });
 
   const orbMat = additive(new THREE.ShaderMaterial({
     uniforms,
@@ -84,35 +125,44 @@ export function createHero(canvas) {
     vertexShader: /* glsl */ `
       ${NOISE}
       uniform float uTime, uProgress, uVoice, uPixelRatio, uIntro;
+      attribute vec3 aNebula;
+      attribute vec3 aWord;
       attribute vec4 aRnd;
       varying float vAlpha;
       varying float vCyan;
+      float stagger(float m, float r){ return clamp(m * 1.5 - r * 0.5, 0.0, 1.0); }
       void main(){
-        vec3 p = position;
         float t = uTime * 0.25;
-        // organic surface
-        float n = snoise(p * 1.6 + vec3(t, t * 0.7, -t));
-        // "speaking" rings travelling from the poles
-        float ring = sin(p.y * 9.0 - uTime * 3.2) * 0.5 + 0.5;
-        float speak = (0.05 + uVoice * 0.25) * ring;
-        // scatter: particles drift away as the story starts
-        float scatter = smoothstep(0.0, 0.45, uProgress) * (1.0 - smoothstep(0.55, 0.9, uProgress));
-        vec3 dir = normalize(p);
-        float burst = aRnd.x * aRnd.x * 2.4 * scatter;
-        // condense into a bright core at the end
-        float condense = smoothstep(0.6, 1.0, uProgress);
-        float radius = 1.0 + n * 0.22 + speak + burst;
-        radius = mix(radius, 0.18 + aRnd.y * 0.08, condense);
-        // intro: gather from a wide cloud
-        radius = mix(4.0 + aRnd.z * 6.0, radius, uIntro);
-        p = dir * radius;
-        p.y += (aRnd.w - 0.5) * burst * 0.6;
+        // sphere with organic surface + "speaking" rings
+        vec3 dir = normalize(position);
+        float n = snoise(position * 1.6 + vec3(t, t * 0.7, -t));
+        float ring = sin(position.y * 9.0 - uTime * 3.2) * 0.5 + 0.5;
+        vec3 sphere = dir * (1.0 + n * 0.2 + (0.04 + uVoice * 0.22) * ring);
+
+        // wordmark, gently breathing
+        vec3 wordP = aWord + vec3(0.0, 0.0, snoise(aWord * 2.0 + t) * 0.06);
+
+        // morph weights along the scroll story
+        float toWord = stagger(smoothstep(0.2, 0.42, uProgress), aRnd.x);
+        float leaveWord = stagger(smoothstep(0.58, 0.74, uProgress), aRnd.y);
+        float condense = smoothstep(0.72, 0.96, uProgress);
+        float intro = stagger(uIntro, aRnd.z);
+
+        vec3 p = mix(aNebula, sphere, intro);
+        p = mix(p, wordP, toWord);
+        // swirl while in transit (peaks halfway through each morph)
+        float transit = 4.0 * toWord * (1.0 - toWord) + 4.0 * leaveWord * (1.0 - leaveWord);
+        p += vec3(snoise(p + t), snoise(p.yzx - t), snoise(p.zxy + 3.0)) * transit * 0.9;
+        vec3 core = normalize(position) * (0.16 + aRnd.y * 0.1);
+        p = mix(p, core, max(leaveWord * 0.35, condense));
+
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mv;
-        float size = (1.2 + aRnd.w * 2.8) * (1.0 + condense * 0.6);
+        float wordShown = toWord * (1.0 - leaveWord);
+        float size = (1.1 + aRnd.w * 2.6) * mix(1.0, 0.8, wordShown) * (1.0 + condense * 0.6);
         gl_PointSize = size * uPixelRatio * (8.0 / -mv.z);
-        vAlpha = (0.35 + 0.65 * smoothstep(-0.4, 0.8, n)) * uIntro;
-        vCyan = smoothstep(0.55, 0.85, n) * (1.0 - scatter) + condense * step(0.72, aRnd.y);
+        vAlpha = mix(0.35 + 0.65 * smoothstep(-0.4, 0.8, n), 0.9, wordShown) * (0.25 + 0.75 * intro);
+        vCyan = mix(smoothstep(0.55, 0.85, n), step(0.9, aRnd.w), wordShown) + transit * 0.4 + condense * step(0.7, aRnd.y);
       }`,
     fragmentShader: /* glsl */ `
       varying float vAlpha;
@@ -120,12 +170,53 @@ export function createHero(canvas) {
       void main(){
         float d = length(gl_PointCoord - 0.5);
         float a = smoothstep(0.5, 0.0, d);
-        vec3 col = mix(vec3(0.86, 0.9, 0.95), vec3(0.22, 0.94, 1.0), vCyan);
+        vec3 col = mix(vec3(0.86, 0.9, 0.95), vec3(0.22, 0.94, 1.0), clamp(vCyan, 0.0, 1.0));
         gl_FragColor = vec4(col, a * vAlpha);
       }`,
   }));
   const orb = new THREE.Points(orbGeo, orbMat);
   scene.add(orb);
+
+  // ───────── Floating rock shards lit by the beam ─────────
+  const SHARDS = window.innerWidth < 800 ? 40 : 90;
+  const shardGeo = new THREE.IcosahedronGeometry(1, 0);
+  const shardMat = new THREE.MeshStandardMaterial({ color: 0x3a3f46, roughness: 0.85, metalness: 0.1, flatShading: true });
+  const shards = new THREE.InstancedMesh(shardGeo, shardMat, SHARDS);
+  const shardData = Array.from({ length: SHARDS }, () => {
+    const a = Math.random() * Math.PI * 2;
+    const r = 0.8 + Math.pow(Math.random(), 0.7) * 5.5;
+    return {
+      x: Math.cos(a) * r,
+      y: (Math.random() - 0.5) * 6,
+      z: Math.sin(a) * r * 0.7 - 1,
+      s: 0.02 + Math.pow(Math.random(), 3) * 0.14,
+      rx: Math.random() * 6, ry: Math.random() * 6,
+      vr: (Math.random() - 0.5) * 0.6,
+      lift: 0.5 + Math.random() * 1.5,
+    };
+  });
+  const shardDummy = new THREE.Object3D();
+  scene.add(shards);
+  scene.add(new THREE.AmbientLight(0x8fa3b8, 0.35));
+  const beamLight = new THREE.PointLight(0xdff6ff, 18, 12, 1.6);
+  beamLight.position.set(0, 2.5, 1.5);
+  scene.add(beamLight);
+  const rimLight = new THREE.DirectionalLight(0x39f0ff, 0.5);
+  rimLight.position.set(-3, 1, -2);
+  scene.add(rimLight);
+
+  function updateShards(time, p) {
+    for (let i = 0; i < SHARDS; i++) {
+      const d = shardData[i];
+      const y = ((d.y + time * 0.04 * d.lift + p * 5 * d.lift + 3) % 6 + 6) % 6 - 3;
+      shardDummy.position.set(d.x, y + 0.6, d.z);
+      shardDummy.rotation.set(d.rx + time * d.vr, d.ry + time * d.vr * 0.7, 0);
+      shardDummy.scale.setScalar(d.s * uniforms.uIntro.value);
+      shardDummy.updateMatrix();
+      shards.setMatrixAt(i, shardDummy.matrix);
+    }
+    shards.instanceMatrix.needsUpdate = true;
+  }
 
   // ───────── Light beam from above ─────────
   const beamMat = additive(new THREE.ShaderMaterial({
@@ -213,6 +304,7 @@ export function createHero(canvas) {
   let progress = 0;
   let smoothProgress = 0;
   let voice = 0;
+  let spin = 0;
   let running = true;
   const clock = new THREE.Clock();
 
@@ -251,9 +343,16 @@ export function createHero(canvas) {
     camera.position.z = 6.2 + p * 5.5;
     camera.lookAt(0, 0.4 + p * 0.9, 0);
 
-    orb.position.y = 0.55 + p * 1.8;
-    orb.rotation.y += dt * (0.08 + p * 0.3);
-    orb.rotation.x = Math.sin(uniforms.uTime.value * 0.2) * 0.15;
+    // the wordmark faces the camera; otherwise the cloud slowly turns
+    const wordHold = THREE.MathUtils.smoothstep(p, 0.18, 0.34) * (1 - THREE.MathUtils.smoothstep(p, 0.6, 0.72));
+    spin += dt * (0.1 + p * 0.3) * (1 - wordHold);
+    const targetY = wordHold > 0 ? Math.round(spin / (Math.PI * 2)) * Math.PI * 2 : spin;
+    orb.rotation.y = THREE.MathUtils.lerp(spin, targetY, wordHold);
+    orb.rotation.x = Math.sin(uniforms.uTime.value * 0.2) * 0.15 * (1 - wordHold);
+    orb.position.y = 0.55 + p * 1.8 - wordHold * 0.25;
+    orb.scale.setScalar(window.innerWidth < 800 ? 0.62 : 1);
+    updateShards(uniforms.uTime.value, p);
+    beamLight.intensity = (12 + p * 20) * uniforms.uIntro.value;
     glow.position.copy(orb.position);
     glow.lookAt(camera.position);
     beam.lookAt(camera.position.x, beam.position.y, camera.position.z);

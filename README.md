@@ -1,6 +1,6 @@
-# CallCenter AI — interactive landing page
+# HOBBYTAN AI — interactive landing page
 
-Cinematic, scroll-driven "About" page for the CallCenter AI service.
+Cinematic, scroll-driven "About" page for HOBBYTAN AI (AI 전환 컨설팅 · 슈퍼AI워크샵).
 Stack: Vite · three.js (WebGL hero) · GSAP ScrollTrigger · Lenis smooth scroll.
 
 ```bash

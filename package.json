@@ -1,7 +1,7 @@
 {
-  "name": "callcenter-ai-site",
+  "name": "hobbytan-ai-site",
   "version": "1.0.0",
-  "description": "CallCenter AI — interactive landing page",
+  "description": "HOBBYTAN AI — interactive landing page",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
