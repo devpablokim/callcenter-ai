@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CallCenter AI — About</title>
+  <meta name="description" content="CallCenter AI — AI voice agents that answer every call, instantly." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body class="is-loading">
+  <!-- ───────────── Preloader ───────────── -->
+  <div class="preloader" id="preloader" aria-hidden="true">
+    <div class="preloader__bar"><span></span></div>
+    <div class="preloader__count" id="preloader-count">000</div>
+  </div>
+
+  <!-- ───────────── Header ───────────── -->
+  <header class="header">
+    <a href="/" class="header__logo" aria-label="CallCenter AI home">CALLCENTER<span>.AI</span></a>
+    <div class="header__actions">
+      <button class="btn-circle" id="sound-toggle" aria-label="Toggle ambient sound" aria-pressed="false">
+        <span class="sound-bars"><i></i><i></i><i></i><i></i></span>
+      </button>
+      <a href="#contact" class="btn-pill btn-pill--dark" data-roll>
+        <span class="roll"><span>Let's talk</span><span>Let's talk</span></span><i class="dot"></i>
+      </a>
+      <button class="btn-pill btn-pill--light" id="menu-toggle" aria-expanded="false" data-roll>
+        <span class="roll"><span class="menu-label">Menu</span><span class="menu-label">Menu</span></span><i class="dots"><b></b><b></b></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ───────────── Menu overlay ───────────── -->
+  <nav class="menu" id="menu" aria-hidden="true">
+    <div class="menu__panel">
+      <ul class="menu__links">
+        <li><a href="#top" data-roll><span class="roll"><span>Home</span><span>Home</span></span></a></li>
+        <li><a href="#about" data-roll><span class="roll"><span>About</span><span>About</span></span></a></li>
+        <li><a href="#capabilities" data-roll><span class="roll"><span>Product</span><span>Product</span></span></a></li>
+        <li><a href="#contact" data-roll><span class="roll"><span>Contact</span><span>Contact</span></span></a></li>
+      </ul>
+      <form class="menu__newsletter" onsubmit="event.preventDefault()">
+        <p>Get product updates<br />in your inbox</p>
+        <label class="field"><input type="email" placeholder="Your email" aria-label="Email" /><button aria-label="Subscribe">→</button></label>
+      </form>
+    </div>
+  </nav>
+
+  <!-- ───────────── Scroll indicator ───────────── -->
+  <div class="scrollbar" aria-hidden="true"><span id="scrollbar-thumb"></span></div>
+
+  <main id="top">
+    <!-- ───────────── Hero (pinned WebGL scene) ───────────── -->
+    <section class="hero" id="hero">
+      <div class="hero__sticky">
+        <div class="hero__bg" style="--img:url('/assets/gen/hero-bg.webp')"></div>
+        <canvas class="hero__canvas" id="hero-canvas"></canvas>
+        <div class="hero__vignette"></div>
+
+        <div class="crosshairs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
+        <h1 class="hero__title">
+          <span class="line"><span>We are</span></span>
+          <span class="line"><span class="outline">CallCenter AI</span></span>
+          <span class="line"><span>An AI voice</span></span>
+          <span class="line"><span class="italic">agent platform</span></span>
+        </h1>
+        <p class="hero__sub">
+          <span class="line"><span class="italic">Answering every call</span></span>
+          <span class="line"><span class="italic">in under a second</span></span>
+        </p>
+        <div class="hero__scroll">Scroll to explore</div>
+      </div>
+    </section>
+
+    <!-- ───────────── Statement ───────────── -->
+    <section class="statement" id="about">
+      <p class="statement__text" data-words>
+        A small team of engineers, linguists and former contact-center leaders building voice agents that listen, understand and resolve — so every customer is heard on the first ring.
+      </p>
+    </section>
+
+    <!-- ───────────── Agents (swipe cards) ───────────── -->
+    <section class="agents">
+      <div class="agents__copy">
+        <p class="mono">[ Our agents ]</p>
+        <p class="agents__lead reveal">
+          Each agent is trained on your scripts, your policies and your tone of voice. They pick up instantly, work in any language, and hand off to a human the moment a conversation needs one.
+        </p>
+      </div>
+      <div class="agents__stack" id="agent-stack">
+        <article class="card" data-index="001">
+          <div class="card__img" style="--img:url('/assets/gen/agent-01.webp')"></div>
+          <div class="card__meta"><span class="mono">[[ 001 ]]</span><h3>Ara</h3><p>Inbound Support<br />Agent</p></div>
+        </article>
+        <article class="card" data-index="002">
+          <div class="card__img" style="--img:url('/assets/gen/agent-02.webp')"></div>
+          <div class="card__meta"><span class="mono">[[ 002 ]]</span><h3>Jun</h3><p>Billing &amp; Payments<br />Agent</p></div>
+        </article>
+        <article class="card" data-index="003">
+          <div class="card__img" style="--img:url('/assets/gen/agent-03.webp')"></div>
+          <div class="card__meta"><span class="mono">[[ 003 ]]</span><h3>Echo</h3><p>Multilingual<br />Voice Core</p></div>
+        </article>
+        <article class="card" data-index="004">
+          <div class="card__img" style="--img:url('/assets/gen/agent-04.webp')"></div>
+          <div class="card__meta"><span class="mono">[[ 004 ]]</span><h3>Mira</h3><p>Outbound Care<br />Agent</p></div>
+        </article>
+        <p class="agents__hint mono">Swipe to change</p>
+      </div>
+    </section>
+
+    <!-- ───────────── Clients marquee ───────────── -->
+    <section class="clients">
+      <div class="clients__head">
+        <h2 class="split-lines">Teams that<br />answer with us</h2>
+        <p class="reveal">From fast-growing startups to national service desks handling millions of calls a month.</p>
+      </div>
+      <div class="marquee" data-dir="1">
+        <div class="marquee__track">
+          <span>NORTHWIND</span><span>Helio&nbsp;Bank</span><span>ORBIT·TEL</span><span>Kestrel</span><span>MERIDIAN</span><span>lumo&nbsp;care</span>
+        </div>
+      </div>
+      <div class="marquee" data-dir="-1">
+        <div class="marquee__track">
+          <span>Vantage</span><span>PARCEL&nbsp;ONE</span><span>Solace&nbsp;Health</span><span>ARCADIA</span><span>brightline</span><span>QUILL&nbsp;&amp;&nbsp;CO</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────── Metrics ───────────── -->
+    <section class="metrics">
+      <div class="metrics__row" data-acc>
+        <button class="metrics__head"><span>Performance</span><span class="count" data-count="94">0</span><i class="plus"></i></button>
+        <ul class="metrics__list">
+          <li><span class="count" data-count="94" data-suffix="%">0</span><span>First-call resolution</span></li>
+          <li><span class="count" data-count="0.8" data-decimals="1" data-suffix="s">0</span><span>Average time to answer</span></li>
+          <li><span class="count" data-count="4.8" data-decimals="1">0</span><span>CSAT out of 5</span></li>
+          <li><span class="count" data-count="62" data-suffix="%">0</span><span>Lower cost per contact</span></li>
+        </ul>
+      </div>
+      <div class="metrics__row" data-acc>
+        <button class="metrics__head"><span>Scale</span><span class="count" data-count="12" data-suffix="M">0</span><i class="plus"></i></button>
+        <ul class="metrics__list">
+          <li><span class="count" data-count="12" data-suffix="M">0</span><span>Calls handled per month</span></li>
+          <li><span class="count" data-count="3000">0</span><span>Concurrent conversations</span></li>
+          <li><span class="count" data-count="24" data-suffix="/7">0</span><span>Always on, no queues</span></li>
+        </ul>
+      </div>
+      <div class="metrics__row" data-acc>
+        <button class="metrics__head"><span>Languages</span><span class="count" data-count="32">0</span><i class="plus"></i></button>
+        <ul class="metrics__list">
+          <li><span class="count" data-count="32">0</span><span>Spoken languages</span></li>
+          <li><span class="count" data-count="140">0</span><span>Regional accents &amp; dialects</span></li>
+          <li><span class="count" data-count="1">0</span><span>Brand voice, everywhere</span></li>
+        </ul>
+      </div>
+      <div class="metrics__row" data-acc>
+        <button class="metrics__head"><span>Trust</span><span class="count" data-count="6">0</span><i class="plus"></i></button>
+        <ul class="metrics__list">
+          <li><span class="mono">SOC 2</span><span>Type II certified</span></li>
+          <li><span class="mono">ISO</span><span>27001 information security</span></li>
+          <li><span class="mono">PCI</span><span>DSS-compliant payments</span></li>
+          <li><span class="mono">GDPR</span><span>&amp; PIPA data protection</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ───────────── Capabilities ───────────── -->
+    <section class="caps" id="capabilities">
+      <div class="caps__head">
+        <h2 class="split-lines">What we<br />automate</h2>
+        <p class="reveal">One platform for every conversation your customers start — and every one you need to start with them.</p>
+      </div>
+      <div class="caps__grid">
+        <article class="cap">
+          <div class="cube" data-letter="i"><div class="cube__inner"><span>i</span><span>i</span><span>i</span><span>i</span></div></div>
+          <div class="cap__img" style="--img:url('/assets/gen/cap-inbound.webp')"></div>
+          <h3>Inbound</h3>
+          <ul><li>Customer support</li><li>Order &amp; delivery status</li><li>Appointment booking</li><li>Authentication &amp; KYC</li><li>Smart human handoff</li></ul>
+        </article>
+        <article class="cap">
+          <div class="cube"><div class="cube__inner"><span>o</span><span>o</span><span>o</span><span>o</span></div></div>
+          <div class="cap__img" style="--img:url('/assets/gen/cap-outbound.webp')"></div>
+          <h3>Outbound</h3>
+          <ul><li>Payment reminders</li><li>Renewal campaigns</li><li>Satisfaction surveys</li><li>Lead qualification</li><li>Proactive notifications</li></ul>
+        </article>
+        <article class="cap">
+          <div class="cube"><div class="cube__inner"><span>a</span><span>a</span><span>a</span><span>a</span></div></div>
+          <div class="cap__img" style="--img:url('/assets/gen/cap-analytics.webp')"></div>
+          <h3>Analytics</h3>
+          <ul><li>Real-time transcripts</li><li>Intent &amp; sentiment</li><li>QA scoring on every call</li><li>Topic trend detection</li><li>Custom dashboards</li></ul>
+        </article>
+        <article class="cap">
+          <div class="cube"><div class="cube__inner"><span>x</span><span>x</span><span>x</span><span>x</span></div></div>
+          <div class="cap__img" style="--img:url('/assets/gen/cap-integration.webp')"></div>
+          <h3>Integration</h3>
+          <ul><li>CRM &amp; helpdesk sync</li><li>SIP / PSTN telephony</li><li>Knowledge base RAG</li><li>Webhooks &amp; REST API</li><li>On-prem deployment</li></ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ───────────── CTA ───────────── -->
+    <section class="cta" id="contact">
+      <div class="cta__bg" style="--img:url('/assets/gen/cta-bg.webp')"></div>
+      <p class="cta__kicker mono reveal">Is your contact center ready for its first AI agent?</p>
+      <a href="mailto:hello@example.com" class="cta__title" id="cta-title">
+        <span class="cta__line"><span>Let's build</span></span>
+        <span class="cta__line"><span class="italic">it together!</span></span>
+        <span class="cta__btn" id="cta-btn">Book a demo <i>→</i></span>
+      </a>
+    </section>
+
+    <!-- ───────────── Footer / continue ───────────── -->
+    <footer class="footer" id="footer">
+      <div class="footer__top">
+        <div><p class="mono">[ Contact ]</p><a href="mailto:hello@example.com">hello@example.com</a></div>
+        <div><p class="mono">[ Office ]</p><p>Seoul, Republic of Korea</p></div>
+        <div><p class="mono">[ Social ]</p><p><a href="#">LinkedIn</a> · <a href="#">X</a> · <a href="#">YouTube</a></p></div>
+      </div>
+      <div class="footer__continue">
+        <p class="mono">Continue to scroll</p>
+        <div class="footer__progress"><span id="continue-bar"></span></div>
+      </div>
+      <div class="footer__mark">CALLCENTER<span>.AI</span></div>
+    </footer>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
