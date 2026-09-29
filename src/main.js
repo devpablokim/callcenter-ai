@@ -2,11 +2,15 @@ import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { createHero } from './hero.js';
+import { LOGO_SVG } from './logo.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+// Brand logo (vector, per-letter paths) into every [data-logo] slot
+document.querySelectorAll('[data-logo]').forEach((el) => (el.innerHTML = LOGO_SVG));
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ───────────── Smooth scroll (Lenis → GSAP ticker) ─────────────
