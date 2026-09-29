@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { LOGO_SVG } from './logo.js';
 
 // One opaque, fixed WebGL canvas behind the page with two scenes:
 //  - valley: tall backdrop photo the camera "tilts" down onto, a soft bokeh
@@ -66,6 +67,7 @@ export function createStage(canvas, { valley, faces = [] } = {}) {
     uTime: { value: 0 }, uIntro: { value: 0 }, uDPR: { value: DPR },
     uPan: { value: 0 }, uZoom: { value: 1.3 }, uDark: { value: 0 }, uBeam: { value: 0 },
     uCondense: { value: 0 }, uTopo: { value: 0 }, uVoice: { value: 0 },
+    uWord: { value: 0 }, uWordOut: { value: 0 }, uWordScale: { value: 6 },
   };
 
   // backdrop: cover-fit tall photo; uPan 0 = looking at the sky above it, 1 = the valley floor
@@ -123,17 +125,63 @@ export function createStage(canvas, { valley, faces = [] } = {}) {
   const cloudGeo = new THREE.BufferGeometry();
   cloudGeo.setAttribute('position', new THREE.BufferAttribute(cloudPos, 3));
   cloudGeo.setAttribute('aRnd', new THREE.BufferAttribute(cloudRnd, 4));
+
+  // second target: the HOBBYTAN AI wordmark, sampled from the logo into unit-width coordinates
+  const wordPos = new Float32Array(N * 3);
+  const wordAttr = new THREE.BufferAttribute(wordPos, 3);
+  cloudGeo.setAttribute('aWord', wordAttr);
+  function sampleWord(draw) {
+    const c = document.createElement('canvas');
+    c.width = 1600; c.height = Math.round(1600 * 246 / 1943);
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    draw(ctx, c.width, c.height);
+    const data = ctx.getImageData(0, 0, c.width, c.height).data;
+    const pts = [];
+    for (let y = 0; y < c.height; y += 2) for (let x = 0; x < c.width; x += 2) if (data[(y * c.width + x) * 4 + 3] > 128) pts.push(x, y);
+    const n = pts.length / 2;
+    if (!n) return;
+    for (let i = 0; i < N; i++) {
+      const j = Math.floor(Math.random() * n) * 2;
+      wordPos[i * 3] = (pts[j] + Math.random() * 2) / c.width - 0.5;
+      wordPos[i * 3 + 1] = -((pts[j + 1] + Math.random() * 2) - c.height / 2) / c.width;
+      wordPos[i * 3 + 2] = (Math.random() - 0.5) * 0.02;
+    }
+    wordAttr.needsUpdate = true;
+  }
+  // text fallback first, then the real logo artwork (letters + badge, "AI" knocked out)
+  sampleWord((ctx, w, h) => {
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `600 ${Math.round(h * 0.8)}px Geist, Arial, sans-serif`;
+    ctx.fillText('HOBBYTAN AI', w / 2, h / 2, w);
+  });
+  {
+    const svg = LOGO_SVG
+      .replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="${Math.round(1600 * 246 / 1943)}" preserveAspectRatio="none" `)
+      .replace(/class="logo__ai"/g, 'class="logo__ai" fill="none"')
+      .replace(/class="logo__(l|badge|box)"/g, 'class="logo__$1" fill="#fff"');
+    const img = new Image();
+    img.onload = () => sampleWord((ctx, w, h) => ctx.drawImage(img, 0, 0, w, h));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
   const cloud = new THREE.Points(cloudGeo, additive(new THREE.ShaderMaterial({
     uniforms: U,
     vertexShader: /* glsl */ `
       ${NOISE}
-      uniform float uTime, uDPR, uIntro, uCondense, uVoice;
-      attribute vec4 aRnd; varying float vA; varying float vBlur; varying float vCyan;
+      uniform float uTime, uDPR, uIntro, uCondense, uVoice, uWord, uWordOut, uWordScale;
+      attribute vec4 aRnd; attribute vec3 aWord; varying float vA; varying float vBlur; varying float vCyan;
       void main(){
         vec3 p = position;
         float t = uTime * 0.07;
         // curl-ish drift so the cloud churns slowly
         p += vec3(snoise(p * 0.45 + t), snoise(p * 0.45 + t + 11.0), snoise(p * 0.45 - t + 23.0)) * (0.55 + uVoice * 0.25);
+        // gather into the wordmark (staggered per particle), then scatter again; ~10% stay as loose dust
+        float wIn = smoothstep(0.0, 1.0, clamp(uWord * 1.6 - aRnd.x * 0.6, 0.0, 1.0));
+        float wOut = smoothstep(0.0, 1.0, clamp(uWordOut * 1.6 - aRnd.y * 0.6, 0.0, 1.0));
+        float w = wIn * (1.0 - wOut) * step(0.1, aRnd.w);
+        vec3 wp = aWord * uWordScale;
+        wp.z += snoise(vec3(aWord.xy * 6.0, t * 3.0)) * 0.05;
+        float transit = 4.0 * w * (1.0 - w);
+        p = mix(p, wp, w) + vec3(snoise(p * 0.8 + t * 4.0), snoise(p.yzx * 0.8 - t * 4.0), 0.0) * transit * 0.5;
         // condense toward a tight core, keep a few stragglers
         float keep = step(0.94, aRnd.x);
         p = mix(p, p * mix(0.16, 0.7, keep), uCondense);
@@ -144,10 +192,11 @@ export function createStage(canvas, { valley, faces = [] } = {}) {
         float focus = 8.0;
         vBlur = clamp(abs(-mv.z - focus) * 0.45, 0.0, 1.0);
         float big = step(0.86, aRnd.y);
-        float size = mix(1.4, 3.2, aRnd.z) + big * mix(6.0, 22.0, aRnd.w) * (0.4 + vBlur);
+        float size = mix(1.4, 3.2, aRnd.z) + big * mix(6.0, 22.0, aRnd.w) * (0.4 + vBlur) * (1.0 - w * 0.85);
         gl_PointSize = size * uDPR * (9.0 / -mv.z);
         // dim as the cloud condenses so thousands of overlapping points don't blow out to white
         vA = mix(0.55, 0.12, big) * mix(1.0, 0.45, vBlur) * uIntro * mix(1.0, 0.16, uCondense);
+        vA = mix(vA, 0.42, w * (1.0 - big * 0.6));
         vCyan = step(0.985, aRnd.w) * (1.0 - big);
       }`,
     fragmentShader: /* glsl */ `
@@ -343,6 +392,9 @@ export function createStage(canvas, { valley, faces = [] } = {}) {
     camera.aspect = teamCam.aspect = w / h;
     camera.fov = w < h ? 62 : 45;
     camera.updateProjectionMatrix();
+    // wordmark spans ~80% of the view width at the cloud's distance, capped on wide screens
+    const visW = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 8.4 * camera.aspect;
+    U.uWordScale.value = Math.min(6.4, visW * 0.84);
     teamCam.updateProjectionMatrix();
     bgU.uView.value = w / h;
   }
@@ -373,7 +425,12 @@ export function createStage(canvas, { valley, faces = [] } = {}) {
     // choreography (fractions of the WHO section)
     const pan = smooth(0.03, 0.3, p);
     const beamP = smooth(0.26, 0.5, p);
-    const cond = smooth(0.34, 0.6, p);
+    const cond = smooth(0.46, 0.64, p);
+    // the cloud gathers into the wordmark under the beam, holds, then breaks up before condensing
+    const wordIn = smooth(0.12, 0.28, p), wordOut = smooth(0.42, 0.54, p);
+    U.uWord.value = wordIn;
+    U.uWordOut.value = wordOut;
+    const wordHold = wordIn * (1 - wordOut);
     const rise = smooth(0.36, 0.66, p);
     U.uPan.value = pan;
     U.uZoom.value = 1.28 - 0.1 * S.intro - smooth(0.3, 0.62, p) * 0.16;
@@ -385,7 +442,9 @@ export function createStage(canvas, { valley, faces = [] } = {}) {
 
     // cloud lives in the sky: it starts centred high, drifts up as the camera tilts down
     cloud.position.set(0, 0.8 + pan * 1.6 + rise * 0.8, 0);
-    cloud.rotation.y += dt * 0.03;
+    // turn slowly, but face the camera while the wordmark is readable
+    S.spin = (S.spin || 0) + dt * 0.03 * (1 - wordHold);
+    cloud.rotation.y = THREE.MathUtils.lerp(S.spin, Math.round(S.spin / (Math.PI * 2)) * Math.PI * 2, smooth(0, 0.5, wordHold));
     drop.position.set(0, -1.0 + rise * 5.4, 0.4);
     drop.scale.setScalar(0.35 + (1 - rise) * 0.4);
     beam.position.y = 1.0 + pan * 1.5;
