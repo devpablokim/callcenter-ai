@@ -142,19 +142,25 @@ function intro() {
 
 // ───────────── WHO: pinned story ─────────────
 function who() {
-  gsap.set('.who__title .ln > span', { yPercent: 110 });
-  gsap.set('.who__desc-top .ln > span', { x: '60vw' });
-  gsap.set('.who__desc-bottom .ln > span', { x: '-60vw' });
+  // hidden states must hold at any width: hide the containers outright and push
+  // lines a full viewport away (a partial offset leaks on narrow screens)
+  gsap.set('.who__title, .who__desc', { autoAlpha: 0 });
+  gsap.set('.who__title .ln > span', { yPercent: 130 });
+  gsap.set('.who__desc-top .ln > span', { x: '110vw' });
+  gsap.set('.who__desc-bottom .ln > span', { x: '-110vw' });
 
   ScrollTrigger.create({ trigger: '#who', start: 'top top', end: 'bottom bottom', onUpdate: (s) => stage && stage.setWho(s.progress) });
 
   const tl = gsap.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: '#who', start: 'top top', end: 'bottom bottom', scrub: 0.6 } });
   tl.to(letters, { yPercent: 140, rotationX: 75, rotationZ: (i) => (i % 2 ? -14 : 12), opacity: 0, stagger: 0.006, duration: 0.07, transformPerspective: 900, ease: 'power2.in' }, 0.005)
     .to('.who__main-scroll', { autoAlpha: 0, duration: 0.03 }, 0)
+    .set('.who__title', { autoAlpha: 1 }, 0.105)
     .to('.who__left .ln > span', { yPercent: 0, stagger: 0.012, duration: 0.07, ease: 'power3.out' }, 0.11)
     .to('.who__right .ln > span', { yPercent: 0, stagger: 0.012, duration: 0.07, ease: 'power3.out' }, 0.14)
     .to('.who__title', { x: () => -window.innerWidth * 1.05, duration: 0.1, ease: 'power2.in' }, 0.58)
     .to('.who .crosses', { autoAlpha: 0.35, duration: 0.05 }, 0.58)
+    .set('.who__title', { autoAlpha: 0 }, 0.69)
+    .set('.who__desc', { autoAlpha: 1 }, 0.635)
     .to('.who__desc-top .ln > span', { x: 0, stagger: 0.01, duration: 0.1, ease: 'power3.out' }, 0.64)
     .to('.who__desc-bottom .ln > span', { x: 0, stagger: 0.01, duration: 0.1, ease: 'power3.out' }, 0.67)
     .to('.who__desc', { yPercent: -18, autoAlpha: 0, duration: 0.06, ease: 'power2.in' }, 0.94);
@@ -293,13 +299,14 @@ function capability() {
   const inner = cards.map((c) => $('.pcard__inner', c));
   const fan = [-14, -5, 5, 14];
   gsap.set(cards, { x: (i) => (i - 1.5) * 34, y: (i) => Math.abs(i - 1.5) * 16, rotation: (i) => fan[i] });
-  const spread = () => (mobile() ? window.innerWidth * 0.24 : Math.min(window.innerWidth * 0.19, 340));
+  // final layout: one row on wide screens, a 2x2 grid on narrow ones (cards must stay on screen)
+  const cw = () => cards[0].offsetWidth;
+  const finalX = (i) => (mobile() ? (i % 2 ? 1 : -1) * cw() * 0.56 : (i - 1.5) * Math.min(window.innerWidth * 0.19, 340) * 1.08);
+  const finalY = (i) => (mobile() ? (i < 2 ? -1 : 1) * cw() * 1.4 * 0.53 : 0);
   const tl = gsap.timeline({ scrollTrigger: { trigger: '.cap__cards', start: 'top top', end: '+=180%', scrub: 0.8, pin: true, invalidateOnRefresh: true } });
   tl.from(cards, { y: '60vh', rotation: (i) => fan[i] * 2.5, duration: 0.3, stagger: 0.04, ease: 'power3.out' }, 0)
-    .to(cards, { x: (i) => (i - 1.5) * spread() * (mobile() ? 0.9 : 1.08), y: 0, rotation: 0, duration: 0.35, ease: 'power2.inOut' }, 0.35)
-    .to(inner, { rotationY: 180, duration: 0.3, stagger: 0.08, ease: 'power2.inOut' }, 0.5)
-    .to(cards, { y: (i) => (mobile() ? (i % 2 ? 40 : -40) : 0), duration: 0.2 }, 0.8);
-  if (mobile()) tl.to(cards, { scale: 0.9, duration: 0.2 }, 0.8);
+    .to(cards, { x: finalX, y: finalY, rotation: 0, duration: 0.35, ease: 'power2.inOut' }, 0.35)
+    .to(inner, { rotationY: 180, duration: 0.3, stagger: 0.08, ease: 'power2.inOut' }, 0.5);
 }
 
 // ───────────── end CTA: wavy title + particle mound ─────────────
