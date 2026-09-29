@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/devpablokim/callcenter-ai.git"
+    "url": "git+https://github.com/devpablokim/hobbytan-web-buildnew.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/devpablokim/callcenter-ai/issues"
+    "url": "https://github.com/devpablokim/hobbytan-web-buildnew/issues"
   },
-  "homepage": "https://github.com/devpablokim/callcenter-ai#readme",
+  "homepage": "https://github.com/devpablokim/hobbytan-web-buildnew#readme",
   "devDependencies": {
     "vite": "^6.4.3"
   },
