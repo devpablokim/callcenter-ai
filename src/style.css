@@ -190,7 +190,10 @@ main { position: relative; z-index: 1; }
 .clients__rows { display: grid; gap: 9vh; }
 .crow { white-space: nowrap; overflow: hidden; }
 .crow__track { display: inline-flex; will-change: transform; }
-.crow__track span { display: inline-flex; align-items: center; justify-content: center; min-width: 13vw; padding: 0 2.5vw; font-family: var(--kr); font-size: max(17px, 1.45vw); font-weight: 500; letter-spacing: -0.01em; color: var(--white); opacity: 0.92; }
+.crow__track > span { display: inline-flex; align-items: center; justify-content: center; flex: none; min-width: 14vw; height: clamp(64px, 7vw, 120px); padding: 0 2.6vw; }
+.crow__logo img { display: block; width: auto; height: calc(clamp(22px, 2.1vw, 38px) * var(--k, 1)); max-width: 15vw; object-fit: contain; opacity: 0.9; transition: opacity 0.3s; }
+.crow__logo:hover img { opacity: 1; }
+.crow__name { font-family: var(--kr); font-size: max(17px, 1.45vw); font-weight: 600; letter-spacing: -0.01em; color: var(--white); opacity: 0.9; }
 
 /* ───────── RESULTS (lists) ───────── */
 .results { position: relative; background: var(--black); color: var(--white); padding: 20vh var(--px) 30vh; overflow: hidden; }
@@ -330,7 +333,9 @@ main { position: relative; z-index: 1; }
   .svc__tip { display: block; position: absolute; left: var(--px); top: calc(var(--py) * 3 + 3.2em + 12vw); font-size: max(11px, 0.8em); color: var(--dim); }
   .clients__head { flex-direction: column; align-items: flex-start; gap: 1.5em; }
   .clients__desc { text-align: left; }
-  .crow__track span { min-width: 34vw; font-size: 4.2vw; }
+  .crow__track > span { min-width: 30vw; height: 64px; padding: 0 5vw; }
+  .crow__logo img { height: calc(22px * var(--k, 1)); max-width: 34vw; }
+  .crow__name { font-size: 4.2vw; }
   .results__words span { font-size: 28vw; }
   .cat__group { grid-template-columns: 1fr; gap: 0.6em; }
   .cap__sub { position: relative; right: auto; top: auto; justify-items: start; margin-top: 4vh; }
