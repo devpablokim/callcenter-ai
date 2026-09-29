@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HOBBYTAN AI</title>
+  <meta name="description" content="AI 전환 컨설팅과 슈퍼AI워크샵으로 우리 팀의 AI 슈퍼유저를 키웁니다. 팀이 직접 개발하고 관리할 수 있도록 돕는 하비탄 AI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Sans+KR:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body class="is-loading">
+  <!-- ───────────── Preloader ───────────── -->
+  <div class="preloader" id="preloader" aria-hidden="true">
+    <div class="preloader__bar"><span></span></div>
+    <div class="preloader__count" id="preloader-count">000</div>
+  </div>
+
+  <!-- ───────────── Header ───────────── -->
+  <header class="header">
+    <a href="#top" class="header__logo" aria-label="HOBBYTAN AI 홈">HOBBYTAN<span>.AI</span></a>
+    <div class="header__actions">
+      <button class="btn-circle" id="sound-toggle" aria-label="배경 사운드 켜기/끄기" aria-pressed="false">
+        <span class="sound-bars"><i></i><i></i><i></i><i></i></span>
+      </button>
+      <a href="#contact" class="btn-pill btn-pill--dark" data-roll>
+        <span class="roll"><span>상담 문의</span><span>상담 문의</span></span><i class="dot"></i>
+      </a>
+      <button class="btn-pill btn-pill--light" id="menu-toggle" aria-expanded="false" data-roll>
+        <span class="roll"><span class="menu-label">Menu</span><span class="menu-label">Menu</span></span><i class="dots"><b></b><b></b></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ───────────── Menu overlay ───────────── -->
+  <nav class="menu" id="menu" aria-hidden="true">
+    <div class="menu__panel">
+      <ul class="menu__links">
+        <li><a href="#top" data-roll><span class="roll"><span>소개</span><span>소개</span></span></a></li>
+        <li><a href="#services" data-roll><span class="roll"><span>서비스</span><span>서비스</span></span></a></li>
+        <li><a href="#results" data-roll><span class="roll"><span>교육 성과</span><span>교육 성과</span></span></a></li>
+        <li><a href="#process" data-roll><span class="roll"><span>진행 방식</span><span>진행 방식</span></span></a></li>
+        <li><a href="#contact" data-roll><span class="roll"><span>상담 문의</span><span>상담 문의</span></span></a></li>
+      </ul>
+      <form class="menu__newsletter" onsubmit="event.preventDefault()">
+        <p>AI 전환 소식을<br />메일로 받아보세요</p>
+        <label class="field"><input id="newsletter-email" type="email" placeholder="이메일 주소" aria-label="이메일" /><button aria-label="구독">→</button></label>
+      </form>
+    </div>
+  </nav>
+
+  <!-- ───────────── Scroll indicator ───────────── -->
+  <div class="scrollbar" aria-hidden="true"><span id="scrollbar-thumb"></span></div>
+
+  <main id="top">
+    <!-- ───────────── Hero (pinned WebGL scene) ───────────── -->
+    <section class="hero" id="hero">
+      <div class="hero__sticky">
+        <div class="hero__bg" data-img="assets/gen/hero-valley.webp"></div>
+        <canvas class="hero__canvas" id="hero-canvas"></canvas>
+        <div class="hero__vignette"></div>
+
+        <div class="crosshairs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
+        <h1 class="hero__title">
+          <span class="line"><span>We are</span></span>
+          <span class="line"><span class="outline">HOBBYTAN AI</span></span>
+          <span class="line"><span>AI 전환을</span></span>
+          <span class="line"><span class="italic">현장에서 완성합니다</span></span>
+        </h1>
+        <p class="hero__sub">
+          <span class="line"><span class="italic">AI Transformation</span></span>
+          <span class="line"><span class="italic">&amp; Super AI Workshop</span></span>
+        </p>
+        <div class="hero__scroll">Scroll to explore</div>
+      </div>
+    </section>
+
+    <!-- ───────────── Statement ───────────── -->
+    <section class="statement" id="about">
+      <p class="mono statement__label">[ AX란? ]</p>
+      <p class="statement__text" data-words>
+        AI를 활용해 업무 방식과 조직의 역량을 바꾸는 일. 하비탄 AI는 AI 전환 전략을 실제 업무 도구로 구현하고, 고객의 팀이 직접 운영하고 개선하도록 교육합니다.
+      </p>
+    </section>
+
+    <!-- ───────────── Services (swipe cards) ───────────── -->
+    <section class="agents" id="services">
+      <div class="agents__copy">
+        <p class="mono">[ 서비스 ]</p>
+        <h2 class="agents__title split-lines">우리 조직에 필요한<br />단계부터 시작합니다</h2>
+        <p class="agents__lead reveal">
+          AI를 어디에 쓸지 정하는 일부터 내부 운영까지. 현재의 업무와 역량에 맞춰 필요한 범위를 설계합니다.
+        </p>
+      </div>
+      <div class="agents__stack" id="agent-stack">
+        <article class="card">
+          <div class="card__img" data-img="assets/gen/svc-strategy.webp"></div>
+          <div class="card__meta"><span class="mono">[[ 01 ]]</span><h3>AI 전환 전략</h3><p>AI를 적용할 업무와<br />우선순위를 정합니다</p></div>
+        </article>
+        <article class="card">
+          <div class="card__img" data-img="assets/gen/svc-workshop.webp"></div>
+          <div class="card__meta"><span class="mono">[[ 02 ]]</span><h3>슈퍼AI워크샵</h3><p>조직의 AI 활용을 이끌<br />사내 실무자를 키웁니다</p></div>
+        </article>
+        <article class="card">
+          <div class="card__img" data-img="assets/gen/svc-build.webp"></div>
+          <div class="card__meta"><span class="mono">[[ 03 ]]</span><h3>업무 도구 구현</h3><p>실제 문서와 데이터로<br />필요한 도구를 함께 만듭니다</p></div>
+        </article>
+        <article class="card">
+          <div class="card__img" data-img="assets/gen/svc-handover.webp"></div>
+          <div class="card__meta"><span class="mono">[[ 04 ]]</span><h3>운영 내재화</h3><p>고객의 팀이 직접 운영하고<br />개선하도록 이관합니다</p></div>
+        </article>
+        <p class="agents__hint mono">Swipe to change</p>
+      </div>
+    </section>
+
+    <!-- ───────────── Trainee companies marquee ───────────── -->
+    <section class="clients">
+      <div class="clients__head">
+        <h2 class="split-lines">수료생<br />소속 기업</h2>
+        <p class="reveal">슈퍼AI워크샵을 거친 실무자들이 22개 기업에서 동료의 AI 활용을 이끌고 있습니다.</p>
+      </div>
+      <div class="marquee" data-dir="1">
+        <div class="marquee__track">
+          <span>에코아이티</span><span>에스아이시티</span><span>바이츠믹스</span><span>큰삼촌컴퍼니</span><span>엔클루</span><span>빌사남</span><span>포피플</span><span>하이유플</span><span>더퓨처랩</span><span>슈림컴퍼니</span><span>매홍엘앤에프</span>
+        </div>
+      </div>
+      <div class="marquee" data-dir="-1">
+        <div class="marquee__track">
+          <span>비엘테크</span><span>넥스트바이오</span><span>신정개발</span><span>디초이글로벌</span><span>휴먼이즈</span><span>더플렌티</span><span>bb5</span><span>율립</span><span>이지영디자인</span><span>독도문방구</span><span>(주)키글</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────── Results + FAQ accordion ───────────── -->
+    <section class="metrics" id="results">
+      <div class="metrics__row" data-acc>
+        <button class="metrics__head"><span>교육 성과</span><span class="count" data-count="80" data-suffix="+">0</span><i class="plus"></i></button>
+        <ul class="metrics__list">
+          <li><span class="count" data-count="80" data-suffix="명+">0</span><span>누적 수료 인원</span></li>
+          <li><span class="count" data-count="80" data-suffix="%">0</span><span>수료율</span></li>
+          <li><span class="count" data-count="90" data-suffix="%+">0</span><span>강의 만족도</span></li>
+          <li><span class="count" data-count="22" data-suffix="곳">0</span><span>수료생 소속 기업</span></li>
+        </ul>
+      </div>
+      <div class="metrics__row" data-acc>
+        <button class="metrics__head"><span>슈퍼유저</span><span class="count" data-count="2">0</span><i class="plus"></i></button>
+        <ul class="metrics__list">
+          <li><span class="mono">리더</span><span>AI에 맡길 업무를 고르고 결과를 판단합니다. 팀의 활용 기준을 세우고 동료의 시도를 지원합니다.</span></li>
+          <li><span class="mono">실무자</span><span>매일 하는 업무에 AI를 적용합니다. 도구를 만들고 고치며, 팀에서 활용할 수 있는 방법을 공유합니다.</span></li>
+        </ul>
+      </div>
+      <div class="metrics__row" data-acc>
+        <button class="metrics__head"><span>내재화 목표</span><span class="count" data-count="90" data-suffix="%+">0</span><i class="plus"></i></button>
+        <ul class="metrics__list">
+          <li><span class="count" data-count="90" data-suffix="%+">0</span><span>장기적으로 개발과 관리의 90% 이상을 내부에서 맡는 것이 목표입니다.</span></li>
+          <li><span class="mono">단계적</span><span>교육과 공동 개발을 거쳐 운영을 단계적으로 이관하며, 범위와 속도는 조직의 인력·업무·보안 조건에 맞춰 정합니다.</span></li>
+        </ul>
+      </div>
+      <div class="metrics__row" data-acc>
+        <button class="metrics__head"><span>자주 묻는 질문</span><span class="count" data-count="4">0</span><i class="plus"></i></button>
+        <ul class="metrics__list">
+          <li><span class="mono">Q1</span><span><b>개발 경험이 없어도 참여할 수 있나요?</b> 네. 현재의 AI 활용 수준부터 확인하고, 슈퍼AI워크샵에서 기본을 익힌 뒤 자신의 업무에 필요한 도구를 만드는 단계로 나아갑니다.</span></li>
+          <li><span class="mono">Q2</span><span><b>회사 데이터를 외부 AI에 보내야 하나요?</b> 먼저 데이터의 성격과 사내 보안 기준을 확인하고, 그에 맞춰 사용할 도구와 데이터 저장 위치, 접근 권한을 정합니다.</span></li>
+          <li><span class="mono">Q3</span><span><b>내재화는 어느 수준까지 진행하나요?</b> 개발과 관리의 90% 이상을 내부에서 맡는 것이 목표이며, 조직의 조건에 맞춰 단계적으로 이관합니다.</span></li>
+          <li><span class="mono">Q4</span><span><b>외부 지원 없이 모두 운영해야 하나요?</b> 필요한 전문 영역에는 외부 도움을 받을 수 있습니다. 내부 담당자가 구조와 운영을 이해하고 변경 사항을 판단하도록 교육합니다.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ───────────── Process ───────────── -->
+    <section class="caps" id="process">
+      <div class="caps__head">
+        <h2 class="split-lines">첫 과제부터<br />팀의 직접 운영까지</h2>
+        <p class="reveal">작동하는 도구와 함께, 그 도구를 운영할 사람과 기준을 남깁니다.</p>
+      </div>
+      <div class="caps__grid">
+        <article class="cap">
+          <div class="cube"><div class="cube__inner"><span>01</span><span>진단</span><span>01</span><span>진단</span></div></div>
+          <div class="cap__img" data-img="assets/gen/step-diagnose.webp"></div>
+          <h3>진단</h3>
+          <ul><li>현재 업무와 AI 활용 수준 진단</li><li>우선 적용 과제와 기대 효과 정의</li><li>실행 계획과 완료 기준 수립</li></ul>
+        </article>
+        <article class="cap">
+          <div class="cube"><div class="cube__inner"><span>02</span><span>교육</span><span>02</span><span>교육</span></div></div>
+          <div class="cap__img" data-img="assets/gen/step-train.webp"></div>
+          <h3>교육</h3>
+          <ul><li>AI의 원리와 한계 이해</li><li>우리 업무로 도구를 만들고 검증하는 실습</li><li>동료에게 활용법을 전하는 슈퍼유저 교육</li></ul>
+        </article>
+        <article class="cap">
+          <div class="cube"><div class="cube__inner"><span>03</span><span>구현</span><span>03</span><span>구현</span></div></div>
+          <div class="cap__img" data-img="assets/gen/step-build.webp"></div>
+          <h3>구현</h3>
+          <ul><li>업무에 맞는 대시보드와 자동화 구현</li><li>담당자가 참여하는 결과 검증과 예외 처리</li><li>업무 변경에 맞춰 도구를 수정하는 실습</li></ul>
+        </article>
+        <article class="cap">
+          <div class="cube"><div class="cube__inner"><span>04</span><span>이관</span><span>04</span><span>이관</span></div></div>
+          <div class="cap__img" data-img="assets/gen/step-handover.webp"></div>
+          <h3>이관</h3>
+          <ul><li>내부 운영 담당자 교육</li><li>문서·권한·관리 기준 정리</li><li>운영 이관과 개선 역량 점검</li></ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ───────────── CTA ───────────── -->
+    <section class="cta" id="contact">
+      <div class="cta__bg" data-img="assets/gen/cta-ridge.webp"></div>
+      <p class="cta__kicker mono reveal">첫 AI 전환 과제 · 우리 조직의 상황에 맞는 첫 실행 계획을 제안합니다</p>
+      <a href="mailto:pablo@hobbytan.com" class="cta__title" id="cta-title">
+        <span class="cta__line"><span>지금 바꾸고 싶은</span></span>
+        <span class="cta__line"><span class="italic">업무를 들려주세요</span></span>
+        <span class="cta__btn" id="cta-btn">AI 전환 상담하기 <i>→</i></span>
+      </a>
+    </section>
+
+    <!-- ───────────── Footer / continue ───────────── -->
+    <footer class="footer" id="footer">
+      <div class="footer__top">
+        <div><p class="mono">[ 상담 문의 ]</p><a href="mailto:pablo@hobbytan.com">pablo@hobbytan.com</a></div>
+        <div><p class="mono">[ 서비스 ]</p><p>AI 전환 전략 · 슈퍼AI워크샵 · 업무 도구 구현</p></div>
+        <div><p class="mono">[ 웹사이트 ]</p><p><a href="https://hobbytan.com" target="_blank" rel="noopener">hobbytan.com</a></p></div>
+      </div>
+      <div class="footer__continue">
+        <p class="mono">Continue to scroll</p>
+        <div class="footer__progress"><span id="continue-bar"></span></div>
+      </div>
+      <div class="footer__mark">HOBBYTAN<span>.AI</span></div>
+    </footer>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
