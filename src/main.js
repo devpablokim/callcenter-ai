@@ -34,7 +34,9 @@ lenis.on('scroll', ({ progress }) => {
 });
 
 // ───────────── Hero WebGL ─────────────
-const hero = createHero($('#hero-canvas'));
+const heroBg = $('.hero__bg');
+const hero = createHero($('#hero-canvas'), { backdrop: heroBg && new URL(heroBg.dataset.img, document.baseURI).href });
+document.documentElement.classList.add('webgl');
 
 // ───────────── Image slots ─────────────
 // Resolve each data-img against the document (not a stylesheet) so relative
@@ -74,7 +76,6 @@ function intro() {
   const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
   tl.to('#preloader', { autoAlpha: 0, duration: 0.9, ease: 'power2.inOut' })
     .to(hero.uniforms.uIntro, { value: 1, duration: 3.2, ease: 'power3.out' }, 0.2)
-    .fromTo('.hero__bg', { scale: 1.25, autoAlpha: 0 }, { scale: 1.12, autoAlpha: 1, duration: 3 }, 0.2)
     .from('.header > *', { y: -30, autoAlpha: 0, duration: 1.4, stagger: 0.1 }, 0.6)
     .from('.hero__title .line > span, .hero__sub .line > span', { yPercent: 110, duration: 1.6, stagger: 0.07 }, 0.8)
     .from('.crosshairs i', { scale: 0, autoAlpha: 0, duration: 1, stagger: 0.06 }, 1)
@@ -97,7 +98,6 @@ function heroScroll() {
   ScrollTrigger.create({ trigger: '#hero', start: 'top bottom', end: 'bottom top', onToggle: (s) => (s.isActive ? hero.resume() : hero.pause()) });
 
   gsap.timeline({ scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom bottom', scrub: 1 } })
-    .to('.hero__bg', { scale: 1.0, yPercent: 6, ease: 'none', duration: 1 }, 0)
     .to('.hero__scroll', { autoAlpha: 0, duration: 0.1 }, 0)
     .to('.crosshairs', { autoAlpha: 0, duration: 0.3 }, 0.55)
     .to('.hero__title .line > span', { yPercent: -110, stagger: 0.02, duration: 0.2, ease: 'power2.in' }, 0.78)

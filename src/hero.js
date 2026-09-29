@@ -38,10 +38,14 @@ function additive(mat, useAlpha = true) {
   return mat;
 }
 
-export function createHero(canvas) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+export function createHero(canvas, { backdrop } = {}) {
+  // Opaque canvas: the backdrop photo is drawn inside WebGL, so additive
+  // particles always have real pixels to add onto (a transparent canvas with
+  // colour in alpha-0 pixels is dropped by some macOS compositors).
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setClearColor(0x000000, 0);
+  renderer.setClearColor(0x0b0c0e, 1);
+  renderer.autoClear = false;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
@@ -54,6 +58,53 @@ export function createHero(canvas) {
     uPixelRatio: { value: renderer.getPixelRatio() },
     uIntro: { value: 0 },
   };
+
+  // ───────── Backdrop photo (cover-fit, scroll zoom, mouse parallax) ─────────
+  const bgUniforms = {
+    uTex: { value: null },
+    uHasTex: { value: 0 },
+    uTexAspect: { value: 1.5 },
+    uViewAspect: { value: 1 },
+    uZoom: { value: 1.25 },
+    uOffset: { value: new THREE.Vector2() },
+    uIntro: uniforms.uIntro,
+    uProgress: uniforms.uProgress,
+  };
+  const bgScene = new THREE.Scene();
+  const bgCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+    uniforms: bgUniforms,
+    depthTest: false,
+    depthWrite: false,
+    vertexShader: /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+    fragmentShader: /* glsl */ `
+      uniform sampler2D uTex;
+      uniform float uHasTex, uTexAspect, uViewAspect, uZoom, uIntro, uProgress;
+      uniform vec2 uOffset;
+      varying vec2 vUv;
+      void main(){
+        vec2 uv = vUv - 0.5;
+        // cover-fit the photo to the viewport
+        if (uViewAspect > uTexAspect) uv.y *= uTexAspect / uViewAspect; else uv.x *= uViewAspect / uTexAspect;
+        uv = uv / uZoom + 0.5 + uOffset;
+        vec3 col = uHasTex > 0.5 ? texture2D(uTex, uv).rgb : vec3(0.05);
+        // grade: slightly cool, darker as the story progresses
+        col *= mix(0.95, 0.72, uProgress);
+        float vig = smoothstep(1.15, 0.35, length((vUv - 0.5) * vec2(uViewAspect, 1.0) * 0.9));
+        col *= mix(0.45, 1.0, vig);
+        gl_FragColor = vec4(col * uIntro, 1.0);
+      }`,
+  })));
+  if (backdrop) {
+    new THREE.TextureLoader().load(backdrop, (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.minFilter = THREE.LinearFilter;
+      tex.generateMipmaps = false;
+      bgUniforms.uTex.value = tex;
+      bgUniforms.uTexAspect.value = tex.image.width / tex.image.height;
+      bgUniforms.uHasTex.value = 1;
+    });
+  }
 
   // ───────── Particle system with three morph targets ─────────
   // position = sphere, aNebula = scattered cloud (intro), aWord = brand wordmark.
@@ -313,6 +364,7 @@ export function createHero(canvas) {
     const h = canvas.clientHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
+    bgUniforms.uViewAspect.value = w / h;
     // keep the orb a similar visual size on portrait screens
     camera.fov = w < h ? 58 : 40;
     camera.updateProjectionMatrix();
@@ -357,6 +409,12 @@ export function createHero(canvas) {
     glow.lookAt(camera.position);
     beam.lookAt(camera.position.x, beam.position.y, camera.position.z);
 
+    // backdrop slowly settles from a close-up to the wide view, with parallax
+    bgUniforms.uZoom.value = 1.22 - 0.1 * uniforms.uIntro.value - p * 0.08;
+    bgUniforms.uOffset.value.set(mouse.sx * 0.012, -mouse.sy * 0.008 + p * 0.04);
+
+    renderer.clear();
+    renderer.render(bgScene, bgCamera);
     renderer.render(scene, camera);
     requestAnimationFrame(tick);
   }
