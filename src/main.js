@@ -36,11 +36,19 @@ lenis.on('scroll', ({ progress }) => {
 // ───────────── Hero WebGL ─────────────
 const hero = createHero($('#hero-canvas'));
 
+// ───────────── Image slots ─────────────
+// Resolve each data-img against the document (not a stylesheet) so relative
+// paths work from any host or sub-path, then paint it over the fallback gradient.
+const FALLBACK_BG = 'radial-gradient(120% 90% at 50% 40%, #23262c 0%, #0d0e10 70%)';
+const imageSlots = $$('[data-img]').map((el) => {
+  const src = new URL(el.dataset.img, document.baseURI).href;
+  el.style.backgroundImage = `url("${src}"), ${FALLBACK_BG}`;
+  return src;
+});
+
 // ───────────── Preloader ─────────────
 function preload() {
-  const imgs = $$('[style*="--img"]')
-    .map((el) => el.style.getPropertyValue('--img').match(/url\(['"]?(.*?)['"]?\)/)?.[1])
-    .filter(Boolean);
+  const imgs = [...new Set(imageSlots)];
   const tasks = [document.fonts.ready, ...imgs.map((src) => new Promise((r) => { const i = new Image(); i.onload = i.onerror = r; i.src = src; }))];
   let done = 0;
   const state = { v: 0 };

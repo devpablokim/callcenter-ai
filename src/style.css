@@ -26,8 +26,9 @@ ul { list-style: none; }
 .italic { font-style: italic; font-weight: 300; }
 .outline { -webkit-text-stroke: 1px var(--fg); color: transparent; }
 
-/* images with graceful fallback when an asset hasn't been generated yet */
-[style*='--img'] { background: var(--img) center / cover no-repeat, radial-gradient(120% 90% at 50% 40%, #23262c 0%, #0d0e10 70%); }
+/* image slots: main.js sets the photo as background-image (absolute URL);
+   the gradient shows until it loads, or if an asset hasn't been generated yet */
+[data-img] { background-color: #0d0e10; background-image: radial-gradient(120% 90% at 50% 40%, #23262c 0%, #0d0e10 70%); background-position: center; background-size: cover; background-repeat: no-repeat; }
 
 /* ─────────── Preloader ─────────── */
 .preloader { position: fixed; inset: 0; z-index: 100; background: #000; display: grid; place-items: center; }
