@@ -156,7 +156,7 @@ export function createStage(canvas, { valley, faces = [] } = {}) {
         float d = length(gl_PointCoord - 0.5) * 2.0;
         float disc = smoothstep(1.0, mix(0.55, 0.85, vBlur), d);
         float ring = smoothstep(0.7, 0.95, d) * smoothstep(1.0, 0.92, d) * 0.35 * vBlur;
-        vec3 col = mix(vec3(0.9, 0.93, 0.98), vec3(0.22, 0.94, 1.0), vCyan);
+        vec3 col = mix(vec3(0.9, 0.93, 0.98), vec3(1.0, 0.353, 0.122), vCyan);
         gl_FragColor = vec4(col * (disc + ring) * vA * (1.0 + vCyan * 2.0), 1.0);
       }`,
   })));
@@ -194,7 +194,7 @@ export function createStage(canvas, { valley, faces = [] } = {}) {
         float sdf = min(body, max(tip, -p.y - 0.12 + 0.0));
         float core = smoothstep(0.02, -0.01, sdf);
         float glow = exp(-max(sdf, 0.0) * 9.0) * 0.55 + exp(-dot(p, p) * 3.0) * 0.35;
-        vec3 col = vec3(0.22, 0.95, 1.0) * (core * 1.6 + glow) + vec3(1.0) * core * 0.35;
+        vec3 col = vec3(1.0, 0.353, 0.122) * (core * 1.6 + glow) + vec3(1.0) * core * 0.35;
         gl_FragColor = vec4(col * uBeam * (0.9 + 0.1 * sin(uTime * 3.0)), 1.0);
       }`,
   })));

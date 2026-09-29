@@ -23,6 +23,7 @@ const GLYPHS = {
   W: ['10001', '10001', '10001', '10101', '10101', '11011', '10001'],
   B: ['11110', '10001', '10001', '11110', '10001', '10001', '11110'],
   O: ['01110', '10001', '10001', '10001', '10001', '10001', '01110'],
+  T: ['11111', '00100', '00100', '00100', '00100', '00100', '00100'],
 };
 const glyphCells = (ch) => GLYPHS[ch].join('').split('').map((b) => `<i class="${b === '1' ? '' : 'off'}"></i>`).join('');
 $$('.pcard__glyph').forEach((el) => (el.innerHTML = glyphCells(el.dataset.glyph)));
@@ -170,8 +171,8 @@ function who() {
 const SERVICES = [
   { name: 'AI 전환 전략', job: 'AI를 적용할 업무와 우선순위를 정합니다', desc: '현재 업무와 AI 활용 수준을 진단하고, 우선 적용 과제와 기대 효과를 정의해 실행 계획과 완료 기준을 세웁니다.', g: 'S' },
   { name: '슈퍼AI워크샵', job: '조직의 AI 활용을 이끌 사내 실무자를 키웁니다', desc: 'AI의 원리와 한계를 이해하고, 우리 업무로 도구를 만들고 결과를 검증하며, 동료에게 활용법을 전하는 슈퍼유저가 됩니다.', g: 'W' },
-  { name: '업무 도구 구현', job: '실제 문서와 데이터로 필요한 도구를 함께 만듭니다', desc: '업무에 맞는 대시보드와 자동화를 구현하고, 담당자가 결과 검증과 예외 처리에 참여하며 업무 변경에 맞춰 도구를 고칩니다.', g: 'B' },
   { name: '운영 내재화', job: '고객의 팀이 직접 운영하고 개선하도록 이관합니다', desc: '내부 운영 담당자를 교육하고 문서·권한·관리 기준을 정리해, 팀이 수정과 개선을 이어가도록 운영을 이관합니다.', g: 'O' },
+  { name: '업무 도구 구현', job: '실제 문서와 데이터로 필요한 도구를 함께 만듭니다', desc: '업무에 맞는 대시보드와 자동화를 구현하고, 담당자가 결과 검증과 예외 처리에 참여하며 업무 변경에 맞춰 도구를 고칩니다.', g: 'T' },
 ];
 function services() {
   const pin = $('.svc__pin');
@@ -287,7 +288,7 @@ function results() {
     gsap.fromTo(w, { xPercent: i % 2 ? 10 : -10 }, { xPercent: i % 2 ? -18 : 18, ease: 'none', scrollTrigger: { trigger: '.results', start: 'top bottom', end: 'bottom top', scrub: true } });
   });
   // the last outline word fills solid as the blue section arrives
-  gsap.to('.results__words .last', { color: '#ffffff', webkitTextStrokeColor: '#ffffff', ease: 'none', scrollTrigger: { trigger: '.cap', start: 'top 95%', end: 'top 40%', scrub: true } });
+  gsap.to('.results__words .last', { color: '#f3f3ef', webkitTextStrokeColor: '#f3f3ef', ease: 'none', scrollTrigger: { trigger: '.cap', start: 'top 95%', end: 'top 40%', scrub: true } });
   $$('.cat').forEach((cat) => {
     gsap.from($$('.cat__group', cat), { y: 40, autoAlpha: 0, duration: 1.2, stagger: 0.08, ease: 'expo.out', scrollTrigger: { trigger: cat, start: 'top 80%', onEnter: () => $$('.count', cat).forEach(countUp) } });
   });
@@ -355,7 +356,7 @@ function endCta() {
     if (!on) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = '#0b0b0c';
     for (const p of pts) {
       const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
       if (d2 < 9000) { const f = (9000 - d2) / 9000 * 2.2; p.vx += (dx / Math.sqrt(d2 + 1)) * f; p.vy += (dy / Math.sqrt(d2 + 1)) * f; }
@@ -370,7 +371,12 @@ function endCta() {
 
 // ───────────── footer (light) + next-page strip ─────────────
 function footer() {
-  ScrollTrigger.create({ trigger: '.footer', start: 'top 60px', end: 'bottom 60px', onToggle: (s) => root.classList.toggle('is-light', s.isActive) });
+  // header/logo switch to black while a light section sits under the header
+  const under = new Set();
+  $$('.cap, .end, .footer').forEach((sec) => ScrollTrigger.create({
+    trigger: sec, start: 'top 60px', end: 'bottom 60px',
+    onToggle: (s) => { s.isActive ? under.add(sec) : under.delete(sec); root.classList.toggle('is-light', under.size > 0); },
+  }));
   gsap.from('.footer__col, .footer__news', { y: 50, autoAlpha: 0, duration: 1.2, stagger: 0.08, ease: 'expo.out', scrollTrigger: { trigger: '.footer', start: 'top 70%' } });
   gsap.from('.footer__mark', { yPercent: 40, autoAlpha: 0, duration: 1.4, ease: 'expo.out', scrollTrigger: { trigger: '.footer__mark', start: 'top 95%' } });
   let fired = false;
@@ -438,6 +444,42 @@ $('#sound-toggle').addEventListener('click', (e) => {
   stage && stage.setVoice(on ? 1 : 0);
 });
 
+// ───────────── section snapping ─────────────
+// The page scrolls continuously; when it comes to rest within ~30% of a
+// viewport of a section edge, glide onto that edge so screens line up.
+function snapping() {
+  let points = [];
+  const compute = () => {
+    const vh = window.innerHeight;
+    points = [0];
+    $$('main > section, main > footer').forEach((el) => {
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      points.push(top);
+      if (el.offsetHeight > vh * 1.2) points.push(top + el.offsetHeight - vh);   // last full screen of a tall section
+    });
+    const pin = ScrollTrigger.getAll().find((t) => t.pin && t.trigger && t.trigger.classList.contains('cap__cards'));
+    if (pin) points.push(pin.start, pin.end);
+    points = [...new Set(points.map(Math.round))].sort((a, b) => a - b);
+  };
+  ScrollTrigger.addEventListener('refresh', compute);
+  compute();
+  let idle, snapping = false;
+  lenis.on('scroll', ({ scroll, velocity }) => {
+    clearTimeout(idle);
+    if (snapping || reduced) return;
+    idle = setTimeout(() => {
+      if (Math.abs(lenis.velocity) > 0.05) return;
+      const vh = window.innerHeight;
+      let best = null;
+      for (const p of points) if (Math.abs(p - scroll) < vh * 0.3 && (best === null || Math.abs(p - scroll) < Math.abs(best - scroll))) best = p;
+      if (best === null || Math.abs(best - scroll) < 2) return;
+      snapping = true;
+      lenis.scrollTo(best, { duration: 0.9, easing: ease4, onComplete: () => (snapping = false) });
+      setTimeout(() => (snapping = false), 1200);
+    }, 160);
+  });
+}
+
 // ───────────── boot ─────────────
 who();
 services();
@@ -447,4 +489,5 @@ results();
 capability();
 endCta();
 footer();
+snapping();
 preload().then(() => { intro(); ScrollTrigger.refresh(); });
